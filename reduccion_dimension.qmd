@@ -1,0 +1,78 @@
+
+
+
+```{r set_up}
+# Se asigna el directorio donde esta el documento
+tryCatch(
+    # To set the default folder, it is going to be the folder where is the script
+    {
+        directory <- dirname(rstudioapi::getSourceEditorContext()$path)
+        setwd(directory)
+    },
+    error = function(e) {
+
+    }
+)
+
+# Se carga el archivo donde se encuentran todos los paquetes y funciones necesarias
+source("./cod/set_up.R")
+
+```
+
+
+
+```{r data}
+df_kidney <- read.xlsx("./data/FeatureEng_Data_KidneyDisease.xlsx")
+df_kidney <- as.data.frame(apply(df_kidney, 2, as.numeric))
+df_kidney_numericas <- df_kidney %>%
+    select(-su)
+
+
+```
+
+
+```{r reduccion_dimension}
+# Se procede a utilizar la funcion de
+r_acp_kidney <- fn_acp(df = cbind(data.frame(Observacion = (1:nrow(df_kidney_numericas))), df_kidney_numericas), name_acp = "acp_kidney")
+
+
+
+# Se guardan las tablas en formato de latex
+print(xtable(r_acp_kidney$eigen_values, type = "latex", tabular.environment = "longtable"),
+    include.rownames = FALSE, file = "./tablas/eigen_values.tex"
+)
+
+print(xtable(r_acp_kidney$df_correlations, type = "latex", tabular.environment = "longtable"),
+    include.rownames = FALSE, file = "./tablas/correlaciones.tex"
+)
+
+print(xtable(r_acp_kidney$df_comunalities, type = "latex", tabular.environment = "longtable"),
+    include.rownames = FALSE, file = "./tablas/comunalidades.tex"
+)
+
+
+ggsave(file = "./graficos/plot_elbow.pdf", r_acp_kidney$plot_elbow)
+ggsave(file = "./graficos/plot_plano_pc.pdf", r_acp_kidney$plot_plano_pc)
+
+ggsave(file = "./graficos/plot_c_correlaciones.pdf", r_acp_kidney$plot_c_correlaciones)
+
+df_correlations <- (r_acp_kidney$df_correlations)
+rownames(df_correlations) <- df_correlations[, 1]
+
+
+
+plot_correlacion <- ggcorrplot(as.matrix(df_correlations[, -1]))
+
+ggsave("./graficos/plot_corr.pdf", plot_correlacion)
+
+
+
+plot_plano_pc_su <- r_acp_kidney$plot_plano_pc
+
+
+plot_plano_pc_su[[1]] <- NULL
+
+plot_plano_pc_su <- plot_plano_pc_su +
+    geom_point()
+```
+
