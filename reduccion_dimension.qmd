@@ -22,10 +22,10 @@ source("./cod/set_up.R")
 
 
 ```{r data}
-df_kidney <- read.xlsx("./data/FeatureEng_Data_KidneyDisease.xlsx")
-df_kidney <- as.data.frame(apply(df_kidney, 2, as.numeric))
+df_kidney <- read.xlsx("./data/FeatureEng_Data_KidneyDisease_1.xlsx")
 df_kidney_numericas <- df_kidney %>%
-    select(-su)
+    select(-class)
+df_kidney_numericas <- as.data.frame(apply(df_kidney_numericas, 2, as.numeric))
 
 
 ```
@@ -76,3 +76,65 @@ plot_plano_pc_su <- plot_plano_pc_su +
     geom_point()
 ```
 
+```{r grafico_clases}
+# Se hace un grafico con las distintas clases ya sea que tenga o no la enfermedad de los rinnones
+df_pc <- r_acp_kidney$df_pc
+
+df_pc %>%
+    mutate(Clase = df_kidney$class) %>%
+    ggplot(aes(
+        x = PC1, y = PC2,
+        color = Clase
+    )) +
+    geom_point() +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_fixed() +
+    theme_minimal() +
+    # theme(text = element_text(size = 16)) +
+    labs(x = "PC1", y = "PC2", caption = paste("Porcentaje de inercia:",
+        r_acp_kidney$eigen_values$Porcentaje.de.inercia.acumulado[2],
+        sep = " "
+    )) +
+    scale_color_manual(values = c("#ef8a62", "#67a9cf"))
+
+ggsave(file = "./graficos/plot_pc1_pc2.pdf")
+
+df_pc %>%
+    mutate(Clase = df_kidney$class) %>%
+    ggplot(aes(
+        x = PC3, y = PC4,
+        color = Clase
+    )) +
+    geom_point() +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0) +
+    coord_fixed() +
+    theme_minimal() +
+    # theme(text = element_text(size = 16)) +
+    labs(x = "PC3", y = "PC4", caption = paste("Porcentaje de inercia:",
+        sum(r_acp_kidney$eigen_values$Porcentaje.de.inercia[3:4]),
+        sep = " "
+    )) +
+    scale_color_manual(values = c("#ef8a62", "#67a9cf"))
+
+ggsave(file = "./graficos/plot_pc3_pc4.pdf")
+
+# df_pc %>%
+#     mutate(Clase = df_kidney$class) %>%
+#     ggplot(aes(x = PC5, y = PC6,
+#         color = Clase
+#     )) +
+#         geom_point() +
+#         geom_hline(yintercept = 0) +
+#         geom_vline(xintercept = 0) +
+#         coord_fixed() +
+#         theme_minimal() +
+#         # theme(text = element_text(size = 16)) +
+#         labs(x = "PC5", y = "PC6", caption = paste("Porcentaje de inercia:",
+#             sum(r_acp_kidney$eigen_values$Porcentaje.de.inercia[5:6]),
+#             sep = " "
+#         )) +
+#         scale_color_manual(values = c("#ef8a62", "#67a9cf"))
+
+```
